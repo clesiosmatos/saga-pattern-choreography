@@ -1,0 +1,23 @@
+# Use official Node.js 18 image as base image
+FROM node:18
+
+# Set working directory inside container
+WORKDIR /usr/src/app
+
+# Install global dependencies (optional, for example, typescript)
+RUN npm install -g typescript ts-node
+
+# Copy the package.json and package-lock.json first to leverage Docker cache
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code into the container
+COPY . .
+
+# Expose the port the app runs on (default for NestJS is 3000)
+EXPOSE 3000
+
+# Set up a hot-reloading system (using `ts-node` in watch mode)
+CMD ["npm", "run", "start:dev"]
