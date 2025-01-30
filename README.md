@@ -1,53 +1,56 @@
-# Padrão Saga com Coreografia
+# Saga Pattern with Orchestration
 
 ![License](https://img.shields.io/github/license/clesiosmatos/saga-pattern-choreography)
 ![Language](https://img.shields.io/github/languages/top/clesiosmatos/saga-pattern-choreography)
 ![Stars](https://img.shields.io/github/stars/clesiosmatos/saga-pattern-choreography?style=social)
 
-## Sumário
+## Table of Contents
 
-- [Introdução](#introdução)
-- [O que é o Padrão Saga?](#o-que-é-o-padrão-saga)
-- [Coreografia vs. Orquestração](#coreografia-vs-orquestração)
-- [Visão Geral do Projeto](#visão-geral-do-projeto)
-- [Arquitetura](#arquitetura)
+- [Introduction](#introduction)
+- [What is the Saga Pattern?](#what-is-the-saga-pattern)
+- [Choreography vs. Orchestration](#choreography-vs-orchestration)
+- [Project Overview](#project-overview)
+- [Architecture](#architecture)
 
-## Introdução
+## Introduction
 
-Bem-vindo ao projeto **Padrão Saga com Coreografia**! Este repositório demonstra a implementação do padrão Saga utilizando coreografia para gerenciar transações distribuídas em uma arquitetura de microsserviços. Ao aproveitar a coreografia, cada microsserviço se comunica com os outros através de eventos, garantindo um sistema descentralizado e resiliente.
+Welcome to the **Saga Pattern with Orchestration** project! This repository demonstrates the implementation of the Saga pattern using orchestration to manage distributed transactions in a microservices architecture. By leveraging orchestration, each microservice communicates with a specific one that do all orchestration, ensuring a resilient system.
 
-## O que é o Padrão Saga?
+## What is the Saga Pattern?
 
-O **Padrão Saga** é um padrão de design usado para gerenciar transações complexas que abrangem múltiplos microsserviços. Em vez de usar transações distribuídas, que podem ser complicadas e difíceis de gerenciar, o padrão Saga divide uma transação em uma série de etapas menores e gerenciáveis (transações locais). Cada etapa é executada por um microsserviço separado e, se qualquer etapa falhar, ações compensatórias são acionadas para manter a consistência dos dados.
+The **Saga Pattern** is a design pattern used to manage complex transactions that span multiple microservices. Instead of using distributed transactions, which can be complicated and difficult to manage, the Saga pattern breaks a transaction into a series of smaller, manageable steps (local transactions). Each step is executed by a separate microservice, and if any step fails, compensating actions are triggered to maintain data consistency.
 
-### Principais Benefícios
+### Key Benefits
 
-- **Escalabilidade**: Cada serviço pode escalar de forma independente.
-- **Resiliência**: Falhas em um serviço não se propagam para os demais.
-- **Flexibilidade**: Serviços podem evoluir de forma independente sem acoplamento rígido.
+- **Scalability**: Each service can scale independently.
+- **Resilience**: Failures in one service do not propagate to others.
+- **Flexibility**: Services can evolve independently without tight coupling.
 
-## Coreografia vs. Orquestração
+## Choreography vs. Orchestration
 
-Existem duas abordagens principais para implementar o padrão Saga:
+There are two main approaches to implementing the Saga pattern:
 
-1. **Orquestração**: Um coordenador central gerencia a transação, instruindo cada serviço sobre o que fazer.
-2. **Coreografia**: Os serviços se comunicam entre si através de eventos sem um coordenador central.
+1. **Orchestration**: A central coordinator manages the transaction, instructing each service on what to do.
+2. **Choreography**: Services communicate with each other through events without a central coordinator.
 
-Este projeto foca na abordagem de **Coreografia**, promovendo uma arquitetura mais descentralizada e flexível.
+This project focuses on the **Orchestration** approach, promoting a more centralized and flexible architecture.
 
-## Visão Geral do Projeto
+## Project Overview
 
-Este repositório fornece um exemplo prático de implementação do padrão Saga utilizando coreografia. Ele inclui:
+This repository provides a practical example of implementing the Saga pattern using choreography. It includes:
 
-- **Microsserviços**: Vários serviços que participam de uma saga.
-- **Event Bus**: Facilita a comunicação entre os serviços via eventos.
-- **Transações Compensatórias**: Gerencia falhas revertendo ações anteriores.
-- **Docker Compose**: Simplifica a configuração e orquestração dos serviços.
+- **Microservices**: Multiple services participating in a saga.
+- **Event Bus**: Facilitates communication between services via events.
+- **Compensating Transactions**: Manages failures by reverting previous actions.
+- **Docker Compose**: Simplifies the configuration and orchestration of services.
 
-## Arquitetura
+## Architecture
 
-1. **Pedidos Service**: Inicia a saga realizando uma transação local e publicando um evento pedido-criado, como demonstração ouve também o topico estoque-indisponivel. Caso ocorra, altera o status do pedido para "CANCELADO".
-2. **Estoque Service**: Escuta eventos do Pagamento Service, realiza sua transação e publica seu próprio evento estoque-disponivel ou estoque-indisponivel.
-3. **Pagamento Service**: Completa a saga realizando a transação final, publicando o evento pagamento-confirmado ou pagamento-nao-confirmado.
-4. **Apache Kafka**: Garante a comunicação confiável entre os serviços.
-5. **Mecanismo de Compensação**: Se qualquer serviço falhar, ações compensatórias são acionadas para manter a consistência.
+1. **Orders Service**: Initiates the saga by performing a local transaction and publishing an `order.created` event.
+2. **Stock Service**: Listens to events like `reserve.product` and `revert.stock.reservation` and publishes its own `product.reserved` or `product.reservation.failed` event.
+3. **Payment Service**: Listens to event `process.payment`, and publishes its own `payment.processed` or `payment.process.failed`.
+4. **Orchestration Service**: Here we have two entities, Saga and Compensation. The entity Saga handle the happy path flow, listen to events like `order.created` and `product.reserved`. Meanwhile the Compensation entity handle de compensations, listen events like `product.reservation.failed` and `payment.process.failed`. These compensations events are send to StockService and PaymentService respectively to undoing product reservation and payment.
+5. **Apache Kafka**: Ensures reliable communication between services.
+6. **Compensation Mechanism**: If any service fails, compensating actions are triggered to maintain consistency.
+
+
