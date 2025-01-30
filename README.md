@@ -1,4 +1,4 @@
-# Saga Pattern with Orchestration
+# Saga Pattern with Choreography
 
 ![License](https://img.shields.io/github/license/clesiosmatos/saga-pattern-choreography)
 ![Language](https://img.shields.io/github/languages/top/clesiosmatos/saga-pattern-choreography)
@@ -14,7 +14,7 @@
 
 ## Introduction
 
-Welcome to the **Saga Pattern with Orchestration** project! This repository demonstrates the implementation of the Saga pattern using orchestration to manage distributed transactions in a microservices architecture. By leveraging orchestration, each microservice communicates with a specific one that do all orchestration, ensuring a resilient system.
+Welcome to the **Saga Pattern with Choreography** project! This repository demonstrates the implementation of the Saga pattern using choreography to manage distributed transactions in a microservices architecture. By leveraging choreography, each microservice communicates with others through events, ensuring a decentralized and resilient system.
 
 ## What is the Saga Pattern?
 
@@ -33,7 +33,7 @@ There are two main approaches to implementing the Saga pattern:
 1. **Orchestration**: A central coordinator manages the transaction, instructing each service on what to do.
 2. **Choreography**: Services communicate with each other through events without a central coordinator.
 
-This project focuses on the **Orchestration** approach, promoting a more centralized and flexible architecture.
+This project focuses on the **Choreography** approach, promoting a more decentralized and flexible architecture.
 
 ## Project Overview
 
@@ -46,11 +46,8 @@ This repository provides a practical example of implementing the Saga pattern us
 
 ## Architecture
 
-1. **Orders Service**: Initiates the saga by performing a local transaction and publishing an `order.created` event.
-2. **Stock Service**: Listens to events like `reserve.product` and `revert.stock.reservation` and publishes its own `product.reserved` or `product.reservation.failed` event.
-3. **Payment Service**: Listens to event `process.payment`, and publishes its own `payment.processed` or `payment.process.failed`.
-4. **Orchestration Service**: Here we have two entities, Saga and Compensation. The entity Saga handle the happy path flow, listen to events like `order.created` and `product.reserved`. Meanwhile the Compensation entity handle de compensations, listen events like `product.reservation.failed` and `payment.process.failed`. These compensations events are send to StockService and PaymentService respectively to undoing product reservation and payment.
-5. **Apache Kafka**: Ensures reliable communication between services.
-6. **Compensation Mechanism**: If any service fails, compensating actions are triggered to maintain consistency.
-
-
+1. **Orders Service**: Initiates the saga by performing a local transaction and publishing an `order-created` event. It also listens to the `stock-unavailable` topic. If triggered, it changes the order status to "CANCELLED".
+2. **Stock Service**: Listens to events from the Payment Service, performs its transaction, and publishes its own `stock-available` or `stock-unavailable` event.
+3. **Payment Service**: Completes the saga by performing the final transaction, publishing the `payment-confirmed` or `payment-not-confirmed` event.
+4. **Apache Kafka**: Ensures reliable communication between services.
+5. **Compensation Mechanism**: If any service fails, compensating actions are triggered to maintain consistency.
